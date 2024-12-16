@@ -1,167 +1,56 @@
-﻿
+﻿@using System.Globalization
 @inject IJSRuntime JSRuntime
 
+<InputText @ref="inRef" @bind-Value="text" @bind-Value:after=OnInputChanged></InputText>
 
-<InputText @ref="inRef" @bind-Value="text"></InputText>
-
-<div>text: @text</div>
-<div>KeyPressed: @KeyPressed</div>
-<div>inputValue: @inputValue</div>
 @code {
 
-	string KeyPressed = "";
-	string text = "$";
-	private InputText? inRef;
+	[Parameter]
+	public decimal Money { get; set; }
+
+	[Parameter]
+	public EventCallback<decimal> MoneyChanged { get; set; }
+
+	string text = "";
 	bool inited;
-
-	string inputValue = "";
-
 	DotNetObjectReference<InputMoney>? ThisComponent;
+	private InputText? inRef;
+
+	protected override void OnParametersSet()
+	{
+		base.OnParametersSet();
+
+		// Set initial value.
+		text = $"{Money:C}";
+	}
 
 	protected async override Task OnAfterRenderAsync(bool firstRender)
 	{
-		// base.OnAfterRender(firstRender);
-
 		if (!inited && inRef != null)
 		{
+			// Install javascript.
 			inited = true;
 			ThisComponent = DotNetObjectReference.Create(this);
-
 			var input = inRef.Element;
 			await JSRuntime.InvokeVoidAsync("inputMoneyHook", ThisComponent, input);
 		}
 	}
 
-	[JSInvokable]
-	public async Task InputChanged(KeyCodes keyCode, int keyCat_, string key_, int selStart, int selEnd, string value)
+	private async Task OnInputChanged()
 	{
-		var keyCat = (KeyCat)keyCat_;
+		// Convert result to decimal and send it to tge client.
+		NumberFormatInfo FormatInfo = new NumberFormatInfo();
+		FormatInfo.CurrencyGroupSeparator = ",";
+		FormatInfo.CurrencySymbol = "$";
 
-		var key = key_[0];
-		KeyPressed = "";
-		KeyPressed += Enum.GetName(typeof(KeyCodes), keyCode);
-		KeyPressed += $" keyCat={keyCat}";
-
-		inputValue = value;
-		bool update = false;
-		int ins = selEnd;
-
-		if (keyCat == KeyCat.Digit)
+		decimal parsedCurrency = 0;
+		try
 		{
-			if (selStart > 0)
-			{
-				inputValue = inputValue[0..selStart] + key + inputValue[selEnd..];
-				++ins;
-				update = true;
-			}
+			parsedCurrency = decimal.Parse(text, NumberStyles.Currency, FormatInfo);
 		}
-		else
-		{
-			switch (keyCode)
-			{
-				case KeyCodes.BACKSPACE:
-					if (selStart < 2) break;
+		catch {}
 
-					inputValue = inputValue[0..(selStart - 1)] + inputValue[selEnd..];
-					update = true;
-					break;
-
-				case KeyCodes.DELETE:
-					if (selStart < 1) break;
-
-					if (selStart == selEnd) selEnd += 1;
-
-					inputValue = inputValue[0..(selStart)] + inputValue[(selEnd)..];
-					--ins;
-					update = true;
-					break;
-
-				case KeyCodes.PERIOD:
-					if (selStart < 1) break;
-
-					inputValue = inputValue.Replace(".", null) + ".";
-					ins = inputValue.Length;
-					update = true;
-					break;
-
-			}
-		}
-
-		if (update)
-		{
-			text = inputValue;
-
-			await InvokeAsync(StateHasChanged);
-			await JSRuntime.InvokeVoidAsync("setSelection", inRef!.Element, ins, ins);
-		}
-
-		await InvokeAsync(StateHasChanged);
+		await MoneyChanged.InvokeAsync(parsedCurrency);
 	}
-
-	[JSInvokable]
-	public async Task InputMoneyKeyDown(KeyCodes keyCode, int keyCat_, string key_, int selStart, int selEnd, string value)
-	{
-		var keyCat = (KeyCat)keyCat_;
-
-		var key = key_[0];
-		KeyPressed = "";
-		KeyPressed += Enum.GetName(typeof(KeyCodes), keyCode);
-		KeyPressed += $" keyCat={keyCat}";
-
-		inputValue = value;
-		bool update = false;
-		int ins = selEnd;
-
-		if (keyCat == KeyCat.Digit)
-		{
-			if (selStart > 0)
-			{
-				inputValue = inputValue[0..selStart] + key + inputValue[selEnd..];
-				++ins;
-				update = true;
-			}
-		}
-		else
-		{
-			switch (keyCode)
-			{
-				case KeyCodes.BACKSPACE:
-					if (selStart < 2) break;
-
-					inputValue = inputValue[0..(selStart - 1)] + inputValue[selEnd..];
-					update = true;
-					break;
-
-				case KeyCodes.DELETE:
-					if (selStart < 1) break;
-
-					if (selStart == selEnd) selEnd += 1;
-
-					inputValue = inputValue[0..(selStart)] + inputValue[(selEnd)..];
-					--ins;
-					update = true;
-					break;
-
-				case KeyCodes.PERIOD:
-					if (selStart < 1) break;
-
-					inputValue = inputValue.Replace(".", null) + ".";
-					ins = inputValue.Length;
-					update = true;
-					break;
-
-			}
-		}
-
-		if (update)
-		{
-			text = inputValue;
-
-			await InvokeAsync(StateHasChanged);
-			await JSRuntime.InvokeVoidAsync("setSelection", inRef!.Element, ins, ins);
-		}
-
-		await InvokeAsync(StateHasChanged);
-    }
 
 }

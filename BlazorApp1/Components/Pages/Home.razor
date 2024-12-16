@@ -3,9 +3,13 @@
 
 <PageTitle>Home</PageTitle>
 
-<button>a button</button>
-<InputMoney></InputMoney>
-
 <div>
-	<InputMoney></InputMoney>
+	<InputMoney @bind-Money="money"></InputMoney>
+	<div>Result: @money</div>
 </div>
+
+
+@code
+{
+	decimal money = 1.23m;
+}
