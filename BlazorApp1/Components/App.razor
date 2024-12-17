@@ -20,10 +20,11 @@
         // Install event handler to implement InputMoney.
         window.inputMoneyHook = function(componentRef, inputElement)
         {
-            inputElement.addEventListener('beforeinput', (event) =>
+            // This version only tosses bad input.
+            function HandleInput1(event)
             {
-                // console.log("beforeinput", event);
-                // console.log("value", inputElement.value);
+                console.log("beforeinput", event);
+                console.log("value", inputElement.value);
 
                 // Protect the leading '$'.
                 let badStart = 0;
@@ -66,6 +67,7 @@
 
                         // todo +, -.
 
+
                         // Other input must be numeric.
                         if (!/^[0-9]+$/.test(newText)) {
                             event.preventDefault(); // Cancel the input
@@ -74,7 +76,73 @@
                     }
 
                 }
-            });
+            }
+
+        // This version takes over all insertion.
+        function HandleInput2(e) {
+          let ss = e.target.selectionStart;
+          let se = e.target.selectionEnd;
+          let w = e.target.value;
+
+          // Utility to insert 
+          function Insert(s)
+          {
+            w = w.substring(0, ss) + s + w.substring(ss);
+            e.target.value = w;
+            ss += s.length;
+            e.target.setSelectionRange(ss, ss);
+          }
+
+          if (ss == 0)
+          {
+            // Protect the '$'.
+            e.preventDefault();
+          }
+          else if (e.inputType == 'deleteContentBackward' && ss == 1)
+          {
+            // Protect the '$'.
+            e.preventDefault();
+          }
+          else if (e.data)
+          {
+            // We're inserting something.  Handle edit here.
+            e.preventDefault();
+
+            // If we're replacing test, cut out selection.
+            if (e.inputType == 'insertFromPaste')
+            {
+              w = w.substring(0, ss) + w.substring(se);
+              se -= se - ss;
+            }
+
+            // If good digits, insert them.
+            if (/^[0-9]+$/.test(e.data))
+            {
+              Insert(e.data);
+            }
+            else if (e.data.includes('.'))
+            {
+              // Insert '.' if there's only one and we don't have one already.
+              var count = (e.data.match(/\./g) || []).length;
+              if (count == 1 && !w.includes('.'))
+              {
+                Insert(e.data);
+              }
+            }
+
+            // Limit to 2 decimals.
+            let ds = e.target.value.indexOf('.');
+            let l = e.target.value.length;
+            if (ds > 0 && l - ds > 3)
+            {
+              e.target.value = e.target.value.substring(0, ds + 3);
+            }
+          }
+        }
+
+  
+
+            inputElement.addEventListener('beforeinput', HandleInput2);
         }
     </script>
 </body>
