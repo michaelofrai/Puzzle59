@@ -2,81 +2,81 @@
 <html lang="en">
 
 <head>
-	<meta charset="utf-8" />
-	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-	<base href="/" />
-	<link rel="stylesheet" href="@Assets["app.css"]" />
-	<link rel="stylesheet" href="@Assets["BlazorApp1.styles.css"]" />
-	<ImportMap />
-	<HeadOutlet @rendermode="new InteractiveServerRenderMode(prerender: false)" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <base href="/" />
+    <link rel="stylesheet" href="@Assets["app.css"]" />
+    <link rel="stylesheet" href="@Assets["BlazorApp1.styles.css"]" />
+    <ImportMap />
+    <HeadOutlet @rendermode="new InteractiveServerRenderMode(prerender: false)" />
 </head>
 
 <body>
-	<Routes @rendermode="new InteractiveServerRenderMode(prerender: false)" />
-	<script src="_framework/blazor.web.js"></script>
+    <Routes @rendermode="new InteractiveServerRenderMode(prerender: false)" />
+    <script src="_framework/blazor.web.js"></script>
 
-	<script>
+    <script>
 
-		// Install event handler to implement InputMoney.
-		window.inputMoneyHook = function(componentRef, inputElement)
-		{
-			inputElement.addEventListener('beforeinput', (event) => 
-			{
-				// console.log("beforeinput", event);
-				// console.log("value", inputElement.value);
+        // Install event handler to implement InputMoney.
+        window.inputMoneyHook = function(componentRef, inputElement)
+        {
+            inputElement.addEventListener('beforeinput', (event) =>
+            {
+                // console.log("beforeinput", event);
+                // console.log("value", inputElement.value);
 
-				// Protect the leading '$'.
-				let badStart = 0;
-				switch (event.inputType)
-				{
-					case 'deleteContentBackward':
-						badStart = 1;
+                // Protect the leading '$'.
+                let badStart = 0;
+                switch (event.inputType)
+                {
+                    case 'deleteContentBackward':
+                        badStart = 1;
 
-					case 'deleteByCut':
-					case 'deleteContentForward':
-					case 'insertText':
-					case 'insertFromPaste':
-						if (inputElement.selectionStart == badStart)
-						{
-							event.preventDefault(); // Cancel the input
-							return;
-						}
-						break;
-				}
+                    case 'deleteByCut':
+                    case 'deleteContentForward':
+                    case 'insertText':
+                    case 'insertFromPaste':
+                        if (inputElement.selectionStart == badStart)
+                        {
+                            event.preventDefault(); // Cancel the input
+                            return;
+                        }
+                        break;
+                }
 
-				// Handle new input.
-				switch (event.inputType)
-				{
-					case 'insertText':
-					case 'insertFromPaste':
-					{
-						const newText = event.data;
-						if (!newText) break;
+                // Handle new input.
+                switch (event.inputType)
+                {
+                    case 'insertText':
+                    case 'insertFromPaste':
+                    {
+                        const newText = event.data;
+                        if (!newText) break;
 
-						// limit to one '.';
-						if (newText.includes('.'))
-						{
-							var count = (newText.match(/\./g) || []).length;
-							if (count > 1 || inputElement.value.includes('.'))
-							{
-								event.preventDefault(); // Cancel the input
-							}
-							break;
-						}
+                        // limit to one '.';
+                        if (newText.includes('.'))
+                        {
+                            var count = (newText.match(/\./g) || []).length;
+                            if (count > 1 || inputElement.value.includes('.'))
+                            {
+                                event.preventDefault(); // Cancel the input
+                            }
+                            break;
+                        }
 
-						// todo +, -.
+                        // todo +, -.
 
-						// Other input must be numeric.
-						if (!/^[0-9]+$/.test(newText)) {
-							event.preventDefault(); // Cancel the input
-						}
-						break;
-					}
+                        // Other input must be numeric.
+                        if (!/^[0-9]+$/.test(newText)) {
+                            event.preventDefault(); // Cancel the input
+                        }
+                        break;
+                    }
 
-				}
-			});
-		}		
-	</script>
+                }
+            });
+        }
+    </script>
 </body>
 
 </html>

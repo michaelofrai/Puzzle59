@@ -5,52 +5,52 @@
 
 @code {
 
-	[Parameter]
-	public decimal Money { get; set; }
+    [Parameter]
+    public decimal Money { get; set; }
 
-	[Parameter]
-	public EventCallback<decimal> MoneyChanged { get; set; }
+    [Parameter]
+    public EventCallback<decimal> MoneyChanged { get; set; }
 
-	string text = "";
-	bool inited;
-	DotNetObjectReference<InputMoney>? ThisComponent;
-	private InputText? inRef;
+    string text = "";
+    bool inited;
+    DotNetObjectReference<InputMoney>? ThisComponent;
+    private InputText? inRef;
 
-	protected override void OnParametersSet()
-	{
-		base.OnParametersSet();
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
 
-		// Set initial value.
-		text = $"{Money:C}";
-	}
+        // Set initial value.
+        text = $"{Money:C}";
+    }
 
-	protected async override Task OnAfterRenderAsync(bool firstRender)
-	{
-		if (!inited && inRef != null)
-		{
-			// Install javascript.
-			inited = true;
-			ThisComponent = DotNetObjectReference.Create(this);
-			var input = inRef.Element;
-			await JSRuntime.InvokeVoidAsync("inputMoneyHook", ThisComponent, input);
-		}
-	}
+    protected async override Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!inited && inRef != null)
+        {
+            // Install javascript.
+            inited = true;
+            ThisComponent = DotNetObjectReference.Create(this);
+            var input = inRef.Element;
+            await JSRuntime.InvokeVoidAsync("inputMoneyHook", ThisComponent, input);
+        }
+    }
 
-	private async Task OnInputChanged()
-	{
-		// Convert result to decimal and send it to tge client.
-		NumberFormatInfo FormatInfo = new NumberFormatInfo();
-		FormatInfo.CurrencyGroupSeparator = ",";
-		FormatInfo.CurrencySymbol = "$";
+    private async Task OnInputChanged()
+    {
+        // Convert result to decimal and send it to tge client.
+        NumberFormatInfo FormatInfo = new NumberFormatInfo();
+        FormatInfo.CurrencyGroupSeparator = ",";
+        FormatInfo.CurrencySymbol = "$";
 
-		decimal parsedCurrency = 0;
-		try
-		{
-			parsedCurrency = decimal.Parse(text, NumberStyles.Currency, FormatInfo);
-		}
-		catch {}
+        decimal parsedCurrency = 0;
+        try
+        {
+            parsedCurrency = decimal.Parse(text, NumberStyles.Currency, FormatInfo);
+        }
+        catch { }
 
-		await MoneyChanged.InvokeAsync(parsedCurrency);
-	}
+        await MoneyChanged.InvokeAsync(parsedCurrency);
+    }
 
 }
