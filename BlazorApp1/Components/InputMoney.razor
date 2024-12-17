@@ -6,10 +6,10 @@
 @code {
 
     [Parameter]
-    public decimal Money { get; set; }
+    public decimal Value { get; set; }
 
     [Parameter]
-    public EventCallback<decimal> MoneyChanged { get; set; }
+    public EventCallback<decimal> ValueChanged { get; set; }
 
     string text = "";
     bool inited;
@@ -21,7 +21,7 @@
         base.OnParametersSet();
 
         // Set initial value.
-        text = $"{Money:C}";
+        text = $"{Value:C}";
     }
 
     protected async override Task OnAfterRenderAsync(bool firstRender)
@@ -50,7 +50,7 @@
         }
         catch { }
 
-        await MoneyChanged.InvokeAsync(parsedCurrency);
+        await ValueChanged.InvokeAsync(parsedCurrency);
     }
 
 }
