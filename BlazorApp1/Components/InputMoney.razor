@@ -21,7 +21,7 @@
         base.OnParametersSet();
 
         // Set initial value.
-        text = $"{Value:C}";
+        text = $"{Value:C}".Replace(",", ""); 
     }
 
     protected async override Task OnAfterRenderAsync(bool firstRender)
